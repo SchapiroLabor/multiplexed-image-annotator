@@ -12,6 +12,7 @@ def combine_results(results_dir, batch_csv_path, quantification_path, output_dir
         match = re.search(r'_annotation_(\d+)\.csv$', anot_filename)
         if match:
             index_from_file = int(match.group(1))
+            print(f"Processing annotation file: {anot_filename} for index: {index_from_file}")
             annotation = pd.read_csv(os.path.join(results_dir, anot_filename))
             annotation = annotation.rename(columns={'Cell Index': 'cell_id', 'Cell Type': 'predicted_phenotype'})
             image_path_string = batch_csv['image_path'][index_from_file]
@@ -19,7 +20,9 @@ def combine_results(results_dir, batch_csv_path, quantification_path, output_dir
             annotation['unique_id'] = image_name + '_' + annotation['cell_id'].astype(str)
             annotation['predicted_phenotype'] = annotation['predicted_phenotype'].replace({'B cell': 'B_cell', 'Others': 'undefined', 'Dendritic cell': 'Dendritic_cell', 'CD8 T cell': 'CD8+_T_cell', 'CD4 T cell': 'CD4+_T_cell',
                                                 'M2 macrophage cell': 'M2_Macrophage', 'M1 macrophage cell': 'M1_Macrophage', 'Natural killer cell': 'NK_cell',
-                                                'Plasma cell': 'Plasma_cell', 'Regulatory T cell': 'Treg', 'Granulocyte cell': 'Neutrophil', 'Mast cell': 'Mast_cell'})
+                                                'Plasma cell': 'Plasma_cell', 'Regulatory T cell': 'Treg', 'Granulocyte cell': 'Neutrophil', 'Mast cell': 'Mast_cell',
+                                                'Endothelial cell': 'Endothelial', 'Epithelial cell': 'Epithelial', 'Proliferating/tumor cell': 'Cancer', 'Smooth muscle': 'Stromal',
+                                                'Stroma cell': 'Stromal'})
             dfs.append(annotation[['unique_id', 'predicted_phenotype']])
     df = pd.concat(dfs, ignore_index=True)
     quantification['unique_id'] = quantification['image'] + '_' + quantification['cell_id'].astype(str)
