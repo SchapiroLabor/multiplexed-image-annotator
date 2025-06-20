@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-
+import random
 from src.multiplexed_image_annotator.cell_type_annotation.model import Annotator
 import argparse
 
@@ -113,6 +113,9 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
+    generated_seed = int.from_bytes(os.urandom(4), byteorder='big')
+    random.seed(generated_seed)
+    np.random.seed(generated_seed)
     
     if args.batch_csv:
         batch_run(
