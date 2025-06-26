@@ -11,7 +11,7 @@ CD3
 CD57
 Pax-5
 GATA3
-TCRgd
+aSMA
 RORgT
 CD45RO
 Na-K ATPase
