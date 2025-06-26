@@ -11,8 +11,8 @@ CD3
 CD57
 Pax-5
 GATA3
-SLP-76
-RORgT
+aSMA
+Vimentin
 CD45RO
 Na-K ATPase
 CD56
