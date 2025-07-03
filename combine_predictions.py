@@ -2,11 +2,16 @@ import pandas as pd
 import argparse
 import os
 import re
+import json
 
 
-def combine_results(results_dir, batch_csv_path, quantification_path, output_dir):
+def combine_results(results_dir, batch_csv_path, quantification_path, image_sample_col, output_dir, rename_rules=None):
     batch_csv = pd.read_csv(batch_csv_path)
     quantification = pd.read_csv(quantification_path)
+    if rename_rules:
+        with open(rename_rules, 'r') as f:
+            rename_dict = json.load(f)
+        quantification[image_sample_col] = quantification[image_sample_col].replace(rename_dict)
     dfs = []
     for anot_filename in os.listdir(results_dir):
         match = re.search(r'_annotation_(\d+)\.csv$', anot_filename)
@@ -15,6 +20,7 @@ def combine_results(results_dir, batch_csv_path, quantification_path, output_dir
             print(f"Processing annotation file: {anot_filename} for index: {index_from_file}")
             annotation = pd.read_csv(os.path.join(results_dir, anot_filename))
             annotation = annotation.rename(columns={'Cell Index': 'cell_id', 'Cell Type': 'predicted_phenotype'})
+            annotation['cell_id'] = annotation['cell_id'].astype(int)
             image_path_string = batch_csv['image_path'][index_from_file]
             image_name = os.path.basename(image_path_string)
             annotation['unique_id'] = image_name + '_' + annotation['cell_id'].astype(str)
@@ -25,7 +31,7 @@ def combine_results(results_dir, batch_csv_path, quantification_path, output_dir
                                                 'Stroma cell': 'Stromal'})
             dfs.append(annotation[['unique_id', 'predicted_phenotype']])
     df = pd.concat(dfs, ignore_index=True)
-    quantification['unique_id'] = quantification['image'] + '_' + quantification['cell_id'].astype(str)
+    quantification['unique_id'] = quantification[image_sample_col] + '_' + quantification['cell_id'].astype(str)
     result = pd.merge(quantification, df, on='unique_id', how='left')
     result = result.rename(columns={'cell_type': 'true_phenotype'})
     result.drop(columns=['unique_id'], inplace=True)
@@ -37,14 +43,16 @@ def main():
     parser.add_argument("--results_dir", type=str, required=True, help="Path to the directory containing ribca annotation results.")
     parser.add_argument("--batch_csv_path", type=str, required=True, help="Path to the batch CSV file.")
     parser.add_argument("--quantification_path", type=str, required=True, help="Path to the quantification CSV file.")
+    parser.add_argument("--image_sample_col", type=str, required=True, help="Column name in the quantification table that contains image sample identifiers for matching with the actual image basenames used by annotation file.")
     parser.add_argument("--output_dir", type=str, required=True, help="Path to the output directory for combined results.")
+    parser.add_argument("--rename_image_sample_col", type=str, help="Path to a json file with renaming rules for image sample identifiers. If provided, will rename the image sample identifiers in the quantification table before merging with annotation results.")
     
     args = parser.parse_args()
     
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
-    
-    combine_results(args.results_dir, args.batch_csv_path, args.quantification_path, args.output_dir)
+
+    combine_results(args.results_dir, args.batch_csv_path, args.quantification_path, args.image_sample_col, args.output_dir, args.rename_image_sample_col)
 
 if __name__ == "__main__":
     main()
