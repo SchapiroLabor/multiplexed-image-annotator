@@ -4,6 +4,7 @@ import pandas as pd
 import random
 from src.multiplexed_image_annotator.cell_type_annotation.model import Annotator
 import argparse
+import time
 
 
 def run(marker_list_path, image_path, mask_path, device, main_dir, batch_id, bs, strict, infer, min_cells, n_regions, normalize, blur, amax, confidence, cell_size, cell_type_confidence, n_jobs):
@@ -13,11 +14,16 @@ def run(marker_list_path, image_path, mask_path, device, main_dir, batch_id, bs,
     pd.DataFrame(temp).to_csv(os.path.join(main_dir, "images.csv"), index=False, header=["image_path", "mask_path"])
     
     path_ = os.path.join(main_dir, "images.csv")
+    start_time = time.time()
     annotator = Annotator(marker_list_path, path_, device, main_dir, batch_id, strict, infer, min_cells, normalize, blur, amax, confidence, cell_size, cell_type_confidence, n_jobs=n_jobs)
     if not annotator.channel_parser.immune_base and not annotator.channel_parser.immune_extended and not annotator.channel_parser.immune_full and not annotator.channel_parser.struct and not annotator.channel_parser.nerve:
         raise ValueError("No panels are applied. Please check the marker list.")
     annotator.preprocess()
     annotator.predict(bs)
+    end_time = time.time()
+    inference_time = end_time - start_time
+    with open(os.path.join(main_dir, "fold_times.txt"), "w") as f:
+        f.write(f"Fold {batch_id} inference_time: {inference_time:.2f}\n")
     annotator.generate_heatmap(integrate=True)
     annotator.export_annotations()
     if n_regions > 0:
@@ -37,11 +43,17 @@ def run(marker_list_path, image_path, mask_path, device, main_dir, batch_id, bs,
     
 
 def batch_run(marker_list_path, image_path, device, main_dir, batch_id, bs, strict, infer, min_cells, n_regions, normalize, blur, amax, confidence, cell_size, cell_type_confidence, n_jobs=0):
+    start_time = time.time()
     annotator = Annotator(marker_list_path, image_path, device, main_dir, batch_id, strict, infer, min_cells, normalize, blur, amax, confidence, cell_size, cell_type_confidence, n_jobs=n_jobs)
     if not annotator.channel_parser.immune_base and not annotator.channel_parser.immune_extended and not annotator.channel_parser.immune_full and not annotator.channel_parser.struct and not annotator.channel_parser.nerve:
         raise ValueError("No panels are applied. Please check the marker list.")
+    
     annotator.preprocess()
     annotator.predict(bs)
+    end_time = time.time()
+    inference_time = end_time - start_time
+    with open(os.path.join(main_dir, "fold_times.txt"), "w") as f:
+        f.write(f"Fold {batch_id} inference_time: {inference_time:.2f}\n")
     annotator.generate_heatmap(integrate=True)
     annotator.export_annotations()
     if n_regions > 0:
