@@ -11,7 +11,7 @@ def combine_results(results_dir, batch_csv_path, quantification_path, image_samp
     if rename_rules:
         with open(rename_rules, 'r') as f:
             rename_dict = json.load(f)
-        quantification[image_sample_col] = quantification[image_sample_col].replace(rename_dict)
+        quantification[image_sample_col] = quantification[image_sample_col].astype(str).replace(rename_dict)
     n_expected = len(batch_csv)
     dfs = []
     found_indices = []
