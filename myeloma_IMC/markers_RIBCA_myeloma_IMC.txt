@@ -31,7 +31,7 @@ Granzyme B
 Ki67
 CollagenTypeI
 CD3
-HistoneH3
+DAPI
 CPT1A
 CD98
 HLA-DR

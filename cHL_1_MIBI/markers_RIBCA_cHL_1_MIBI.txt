@@ -22,16 +22,16 @@ B2-Microglobulin
 TIM3
 SLP-76
 Tox
-Histone H3
-CD30
+DAPI
+PanCK
 CXCR5
-Ki-67
+Ki67
 Granzyme B
 CD8
 PD-L1
 CD45
 HLA1
-CD153 (CD30L)
+CD31
 pSLP-76
 HLA-DR
 CD16

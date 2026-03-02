@@ -23,7 +23,7 @@ TIM3
 SLP-76
 Tox
 DAPI
-CD30
+PanCK
 CXCR5
 Ki67
 Granzyme B
@@ -32,7 +32,7 @@ PD-L1
 CD45
 HLA1
 CD31
-PanCK
+pSLP-76
 HLA-DR
 CD16
 dsDNA

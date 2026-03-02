@@ -12,7 +12,9 @@ def combine_results(results_dir, batch_csv_path, quantification_path, image_samp
         with open(rename_rules, 'r') as f:
             rename_dict = json.load(f)
         quantification[image_sample_col] = quantification[image_sample_col].replace(rename_dict)
+    n_expected = len(batch_csv)
     dfs = []
+    found_indices = []
     for anot_filename in os.listdir(results_dir):
         match = re.search(r'_annotation_(\d+)\.csv$', anot_filename)
         if match:
@@ -31,6 +33,22 @@ def combine_results(results_dir, batch_csv_path, quantification_path, image_samp
                                                 'Endothelial cell': 'Endothelial', 'Epithelial cell': 'Epithelial', 'Proliferating/tumor cell': 'Cancer', 'Smooth muscle': 'Stromal',
                                                 'Stroma cell': 'Stromal'})
             dfs.append(annotation[['unique_id', 'predicted_phenotype']])
+            found_indices.append(index_from_file)
+
+    found_indices_sorted = sorted(found_indices)
+    expected_indices = list(range(n_expected))
+    if found_indices_sorted != expected_indices:
+        missing = sorted(set(expected_indices) - set(found_indices))
+        extra = sorted(set(found_indices) - set(expected_indices))
+        raise ValueError(
+            f"Annotation file indices do not match batch CSV rows.\n"
+            f"  Expected indices: {expected_indices}\n"
+            f"  Found indices:    {found_indices_sorted}\n"
+            f"  Missing: {missing}  |  Unexpected: {extra}\n"
+            f"RIBCA likely skipped one or more images — cell-to-image mapping would be corrupted."
+        )
+    print(f"Sanity check passed: found {len(found_indices)} annotation files matching {n_expected} batch CSV rows.")
+
     df = pd.concat(dfs, ignore_index=True)
     quant_image_key = quantification[image_sample_col].apply(lambda x: os.path.splitext(x)[0]) if strip_ext else quantification[image_sample_col]
     quantification['unique_id'] = quant_image_key + '_' + quantification['cell_id'].astype(str)
