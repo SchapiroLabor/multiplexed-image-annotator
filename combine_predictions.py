@@ -25,7 +25,8 @@ def combine_results(results_dir, batch_csv_path, quantification_path, image_samp
             annotation['cell_id'] = annotation['cell_id'].astype(int)
             image_path_string = batch_csv['image_path'][index_from_file]
             image_name = os.path.basename(image_path_string)
-            image_key = os.path.splitext(image_name)[0] if strip_ext else image_name
+            stem = os.path.splitext(image_name)[0]
+            image_key = os.path.splitext(stem)[0] if strip_ext else image_name
             annotation['unique_id'] = image_key + '_' + annotation['cell_id'].astype(str)
             annotation['predicted_phenotype'] = annotation['predicted_phenotype'].replace({'B cell': 'B_cell', 'Others': 'undefined', 'Dendritic cell': 'Dendritic_cell', 'CD8 T cell': 'CD8+_T_cell', 'CD4 T cell': 'CD4+_T_cell',
                                                 'M2 macrophage cell': 'M2_Macrophage', 'M1 macrophage cell': 'M1_Macrophage', 'Natural killer cell': 'NK_cell',
